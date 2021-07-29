@@ -1,0 +1,53 @@
+# web.xml, root-context.xml, sevlet-context.xml 의 합본
+# root-context.xml 에 한번만 new 되고 더이상 new 될 필요가 없는 애들 (Singleton)
+# 주로 Database 설정
+# servlet-context.xml 지속적으로 계속 new 해서 만들어서 사용해야 하는 애들
+
+# application.properties 로 사용하면 Prefix? ~.~.~ 앞에 반복
+# server.port=8090
+
+# 내 포트와 Context를 설정
+# context-path : 내 프로젝트에 .들어오기 위한 진입점 (기본 : /)
+server: 
+  port: 8090
+  servlet:
+    context-path: /
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  
+
+spring:
+  mvc:
+    view:
+      prefix: /WEB-INF/views/
+      suffix: .jsp
+# Spring - MySQL 연결
+# DATABASE, USERNAME, PASSWORD 작성 필요!!
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/{DATABASENAME}?serverTimezome=Asia/Seoul
+    username: {USERNAME}
+    password: {PASSWORD}
+    
+  jpa:
+    # open-in-view: true - LAZY 로딩이 가능해짐 <= 영속성을 프리젠테이션 계층까지 가져가기 때문 / 스프링 2.0 기본이 true
+    # open-in-view: false 로 지정하면 영속성 컨텍스트의 시작-끝 시점이 Service 단으로 내려간다.
+    open-in-view: true
+    hibernate:
+      ddl-auto: update # create : 프로젝트를 재시작 할때마다 새로 만듬, 나중에 다시 시작할 때는 update로 변경해야 한다.
+      naming: 
+        # physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy : 카멜 표기법을 _로 표기 ex) myEmail -> my_email
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl # Entity를 만들 때 (테이블을 만들 때), 변수명 그대로 데이터베이스에 필드명으로 생성 ex) myEmail -> myEmail
+      use-new-id-generator-mappings: false # false : JPA가 사용하는 기본 넘버링 전략을 따라가지 않는다.
+#    show-sql: true # console 창에 sql 문장 확인 가능
+    properties:
+      hibernate.format_sql : true # console 창에 sql 문을 보여줄 때 한줄이 아닌 정렬된 형태로 보여짐.
+      
+  jackson:
+    serialization:
+      fail-on-empty-beans: false
+#      UUID 대신 사용할 카카오 로그인 시 비밀번호 통일 (실제로는 다른 로직으로 사용할 것)
+cos: 
+  key: kakaopass123
