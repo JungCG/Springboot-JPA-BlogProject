@@ -153,7 +153,7 @@
 1. 프로젝트의 .m2 폴더로 이동, lombok 찾기
 2. jar 위치에서 Command
     ```bash
-        java jar {lombor_jar_file.jar}
+    java jar {lombor_jar_file.jar}
     ```
 3. STS IDE 지정, Install
 
@@ -162,7 +162,7 @@
 ## 영속성 컨텍스트
 - (+) 통신 과정은 컨트롤러로 Request가 들어오고 Response를 해주는 방식
 - (+) Request 종류는 Insert, Update, Delete, Select
-- **영속성 컨텍스트 예시**
+- **영속성 컨텍스트**(**Persistence Context**) 예시
     1. **Insert**
         - Controller에서 User 객체를 만들어서 **Save**
         - **영속성 컨텍스트 안에 있는 1차 캐시**에 User 객체가 쌓인다. (**1차 캐시에 쌓인 상태를 영속화 되었다**고 한다)
@@ -180,7 +180,33 @@
 --------------------------------------------
 
 ## Json 데이터로 통신하기
-- To be written
+1. **Get 요청** (select)
+    - **주소에 데이터를 담아 보낸다. 데이터 형태는 key=value**
+    - ex) http://localhost:8090/myblog/user?username=myname
+    - Body로 데이터를 담아 보내지 않는다.
+2. **Post, Put, Delete 요청** (데이터를 변경)
+    - **Body에 데이터를 담아 보낸다.** 데이터 형태는 JSON으로 통일하는 것이 좋다.
+    - **form 태그** -> **get 요청, post 요청 (key=value 형태)만 가능** -> 자바 스크립트로 요청해야 한다.
+    - 자바스크립트 Ajax 요청 + 데이터는 JSON으로 통일 : 지금 프로젝트에서 사용
+    - (+) **form:form 태그** -> **post, get, delete, put 가능** : 지금 프로젝트에서 사용 X
+3. **스프링 컨트롤러의 파싱 전략 1**
+    - **스프링 컨트롤러는 key=value 데이터를 자동으로 파싱하여 변수에 담아준다.**
+    - 가령 get 요청은 key=value 이고 **post 요청중에 x-www-form-urlencoded** (**form 태그를 만들어서 데이터 전송**) 시에도 key=value 이기 때문에 이러한 데이터는 아래와 같이 함수의 파라메터로 받을 수 있다.
+        ```java
+        public String home(String username, String email)
+        ```
+4. **스프링 컨트롤러의 파싱 전략 2**
+    - 스프링은 key=value 형태의 데이터를 **오브젝트로 파싱해서 받아주는 역할**도 한다.
+    - **이때 주의할 점은 setter가 없으면 key=value 데이터를 스프링이 파싱해서 넣어주지 못한다.** -> 에러 발생
+        ```java
+        public String home(User user)
+        ```
+    - **클래스에 없는 필드를 보내면 오류는 없고 무시**
+5. **key=value가 아닌 데이터 파싱**
+    - json 데이터나 일반 text 데이터는 스프링 컨트롤러에서 받기 위해서는 **@RequestBody 어노테이션**이 필요하다. 기본 전략이 스프링 컨트롤러는 key=value 데이터를 파싱해서 받아주는 일을 하는데 다른 형태의 데이터 가령 json 같은 데이터는 스프링이 파싱해서 오브젝트로 받지 못한다. 그래서 **@RequestBody 어노테이션을 붙이면 MessageConverter 클래스를 구현한 Jackson 라이브러리가 발동하면서 JSON 데이터를 자바 오브젝트로 파싱하여 받아준다.**
+6. **form 태그로 JSON 데이터 요청 방법**
+    - key=value 데이터가 아니라 json 데이터를 어떻게 전송할 수 있을까?
+    - **Javascript + Ajax를 통해서 전송**
 
 --------------------------------------------
 
