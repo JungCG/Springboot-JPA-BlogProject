@@ -18,6 +18,7 @@
 11. [DB 격리수준](#db-격리수준)
 12. [Spring boot Transaction](#Spring-boot-transaction)
 13. [CSRF와 XSS](#csrf와-xss)
+14. [Spring Security](#spring-security)
 17. [Licence](#license)
 
 --------------------------------------------
@@ -236,8 +237,8 @@
 1. **최초 실행할 때**
     1. **스프링 시작**
     2. **톰켓 시작** (서버 작동)
-    3. **web.xml**
-    4. **context.xml** (DB 연결 테스트)
+    3. **web.xml** (권한, 인증, 인코딩 등 걸러내야 할 필터들이 메모리에 올라옴)
+    4. **context.xml** (DB 연결 테스트, DataSource 하나가 메모리에 뜨고 사용자 요청마다 생기는 것이 아니라 하나만 존재)
 2. ** 클라이언트 요청 시**
     1. **Request**
     2. **web.xml** -> **필터** (**영속성 컨텍스트 시작**, 사용자마다 생성이 된다.)
@@ -247,10 +248,45 @@
     6. **Service가 종료될 때 DB 연결 세션 종료하고 Transaction을 종료**
     7. **Controller로 돌아온다.** 만약 여기서 프록시 (Lazy 기법, OneToMany)를 접근하려 하면 (Select만 가능) JDBC 커넥션이 시작되서 DB에 갔다가 데이터를 읽어오고 커넥션 종료
     8. **영속성 컨텍스트 종료** -> 결과를 **Response**
+3. ** 클라이언트 요청 시 요약**
+    - Request -> Controller에 Body 데이터 내용이 넘어감 -> Service -> Repository -> 영속성 컨테스트 확인 -> DataSource -> DB -> DataSource -> 영속성 컨텍스트 -> Repository -> Service -> Controller (@Controller 일 경우 항상 View Resolver가 작동)
 
 --------------------------------------------
 
+## CSRF와 XSS
+1. **CSRF** (Cross Site Request Forgery)
+    - 하이퍼링크인 GET 방식은 사용하지 말고, **POST 방식으로 설계**
+    - **Refferer 검증** : 같은 도메인 상에서 요청이 들어오지 않는다면 차단하는 방법
+    - **CSRF 토큰 사용** : 사용자 세션에 CSRF 토큰을 저장, 요청 페이지에 토큰을 설정해서 서버에 전송하여 정상, 비정상을 구분한다. (외부 공격 모두 막을 수 있음.)
+2. **XSS** (Cross Site Scripting)
+    - **자바 스크립트로 공격하는 방법**
+    - Naver의 Luzy 필터 등을 사용하면 간단하게 막을 수 있다.
 
+--------------------------------------------
+
+## Spring Security
+1. **Security**
+    - **Security로 로그인할 때 username, password를 가로채서 로그인 진행**
+    - 로그인 진행 완료되면 Security가 들고 있던 전용 세션으로 유저정보를 등록 (IoC)
+    - DI로 유저 정보 사용 가능
+    - **직접 만든 오브젝트는 저장할 수 없고 타입이 정해져 있다. Type : UserDetails**
+    - 사용 방법
+        1. **UserDetails가 우리가 만든 클래스를 extends**
+        2. **형변환**
+    - password는 1234와 같은 것은 Security에서 사용 못하도록 막는다. 해쉬 변환을 해야 사용 가능
+2. **Spring Security**
+    - **Session에 Security Context라고 불리는 특정 공간을 만들어서 그 안에 Authentication 객체를 만들어서 관리**
+    - **Authentication 객체는 AuthenticationManager가 만들어준다.** 만들기 위해서는 username과 password를 알아야 생성할 수 있다.
+    - **Spring Security 예시**
+        1. 사용자가 **로그인 요청** (username : sename, password : 1234)
+        2. **AuthenticationFilter (로그인 필터)가 가로챈다.**
+        3. **UsernamePasswordAuthenticationToken** 을 username과 password로 입력한 값을 기반으로 만든다.
+        4. **이 토큰을 AuthenticationManager에 보내면 Manager가 세션을 만들어 준다.**
+    - **세션을 만들기 위한 조건**을 만족해야 만들어진다.
+        1. **AuthenticationManager가 username을 UserDetailService (PrincipalDetailService (implements UserDetailService) )로 보낸다.**
+        2. **UserDetailService는 DB에 username이 존재하는지 질의**를 한다.
+        3. 있으면 Manager에 있다고 응답을 해주고 **Manager가 password를 저장할 때 사용했던 암호화 인코딩 방식을 사용하여 DB에 확인**
+        4. **맞으면 Authentication 객체를 만들어서 세션에 저장**
 
 --------------------------------------------
 
