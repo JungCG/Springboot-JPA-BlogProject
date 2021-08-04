@@ -1,5 +1,5 @@
 # Springboot-JPA-BlogProject
-1. **Spring boot related Basic Knowledge**
+1. **Basic knowledge of Spring Boot**
 2. Creating a **blog website using spring boot**
 
 -----------------
